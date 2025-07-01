@@ -165,10 +165,12 @@ export default function Home() {
                     </RadialBarChart>
                 </ResponsiveContainer>
             </div>
-            <div className="absolute flex flex-col items-center justify-center text-center">
-                <VirtualTree progress={treeProgress} />
-                <h2 className="text-5xl font-bold font-mono text-primary mt-2 bg-background/80 backdrop-blur-sm px-2 rounded-lg">{formatTime(timeLeft)}</h2>
+            <div className="absolute inset-0 flex items-center justify-center">
+                 <VirtualTree progress={treeProgress} />
             </div>
+            <h2 className="absolute bottom-5 text-5xl font-bold font-mono text-primary bg-background/80 backdrop-blur-sm px-4 py-1 rounded-lg">
+                {formatTime(timeLeft)}
+            </h2>
           </div>
           <div className="w-full space-y-6">
             <div className="space-y-2">
