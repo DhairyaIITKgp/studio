@@ -141,6 +141,18 @@ export default function Home() {
     const secs = (seconds % 60).toString().padStart(2, '0');
     return `${mins}:${secs}`;
   };
+  
+  const formatDuration = (minutes: number) => {
+    if (minutes < 60) {
+      return `${minutes} minutes`;
+    }
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    if (remainingMinutes === 0) {
+      return `${hours} hour${hours > 1 ? 's' : ''}`;
+    }
+    return `${hours} hour${hours > 1 ? 's' : ''} ${remainingMinutes} minutes`;
+  };
 
   const handleStartAttempt = () => {
     if (user && user.cash > 0) {
@@ -208,11 +220,11 @@ export default function Home() {
             </div>
             <div className="w-full space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="duration">Session Length: {duration} minutes</Label>
+                <Label htmlFor="duration">Session Length: {formatDuration(duration)}</Label>
                 <Slider
                   id="duration"
                   min={5}
-                  max={120}
+                  max={1440}
                   step={5}
                   value={[duration]}
                   onValueChange={(value) => setDuration(value[0])}
