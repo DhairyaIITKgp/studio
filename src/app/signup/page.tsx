@@ -3,13 +3,12 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/auth-context';
 import { Chrome } from 'lucide-react';
 
 export default function SignUpPage() {
@@ -19,34 +18,27 @@ export default function SignUpPage() {
   const [error, setError] = useState('');
   const router = useRouter();
   const { toast } = useToast();
+  const { login } = useAuth(); // We use 'login' from context to sign the user in
 
-  const handleSignUp = async (e: React.FormEvent) => {
+  const handleSignUp = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
+      toast({ variant: "destructive", title: "Sign Up Failed", description: "Passwords do not match." });
       return;
     }
-    try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      toast({ title: "Account Created", description: "Welcome to FocusForge!" });
-      router.push('/');
-    } catch (err: any) {
-      setError(err.message);
-      toast({ variant: "destructive", title: "Sign Up Failed", description: err.message });
-    }
+    // With our mock auth, signup automatically logs the user in.
+    login(email);
+    toast({ title: "Account Created", description: "Welcome to FocusForge!" });
+    router.push('/');
   };
   
-  const handleGoogleSignIn = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-      toast({ title: "Account Created", description: "Welcome!" });
-      router.push('/');
-    } catch (err: any) {
-      setError(err.message);
-      toast({ variant: "destructive", title: "Sign Up Failed", description: err.message });
-    }
+  const handleGoogleSignIn = () => {
+    // Simulate Google sign-up with a mock user.
+    login("demo@google.com");
+    toast({ title: "Account Created", description: "Welcome!" });
+    router.push('/');
   };
 
   return (

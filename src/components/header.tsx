@@ -2,9 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { signOut } from "firebase/auth";
 import { cn } from "@/lib/utils";
-import { auth } from "@/lib/firebase";
 import { useAuth } from "@/context/auth-context";
 import { Logo } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -12,10 +10,10 @@ import { Button } from "@/components/ui/button";
 export function Header() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
-  const handleLogout = async () => {
-    await signOut(auth);
+  const handleLogout = () => {
+    logout();
     router.push('/login');
   };
 

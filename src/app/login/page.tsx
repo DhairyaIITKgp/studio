@@ -3,13 +3,12 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/auth-context';
 import { Chrome } from 'lucide-react';
 
 export default function LoginPage() {
@@ -18,30 +17,22 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const router = useRouter();
   const { toast } = useToast();
+  const { login } = useAuth();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      toast({ title: "Login Successful", description: "Welcome back!" });
-      router.push('/');
-    } catch (err: any) {
-      setError(err.message);
-      toast({ variant: "destructive", title: "Login Failed", description: err.message });
-    }
+    // With our mock auth, any login is successful!
+    login(email);
+    toast({ title: "Login Successful", description: "Welcome back!" });
+    router.push('/');
   };
   
-  const handleGoogleSignIn = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-      toast({ title: "Login Successful", description: "Welcome!" });
-      router.push('/');
-    } catch (err: any) {
-      setError(err.message);
-      toast({ variant: "destructive", title: "Login Failed", description: err.message });
-    }
+  const handleGoogleSignIn = () => {
+    // Simulate Google sign-in with a mock user.
+    login('demo@google.com');
+    toast({ title: "Login Successful", description: "Welcome!" });
+    router.push('/');
   };
 
   return (

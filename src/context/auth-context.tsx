@@ -1,58 +1,52 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
-import { Skeleton } from '@/components/ui/skeleton';
+import { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 
-interface AuthContextType {
-  user: User | null;
-  loading: boolean;
+// A mock user type to simulate a real user object.
+interface MockUser {
+  email: string;
+  displayName: string;
 }
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  loading: true,
-});
+interface AuthContextType {
+  user: MockUser | null;
+  loading: boolean;
+  login: (email: string) => void;
+  logout: () => void;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<MockUser | null>(null);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
+  const login = useCallback((email: string) => {
+    // In this mock implementation, any login attempt is successful.
+    // We'll create a display name from the email for a more realistic feel.
+    const displayName = email.split('@')[0]
+      .replace(/[^a-zA-Z0-9]/g, ' ')
+      .replace(/\w\S*/g, (w) => (w.replace(/^\w/, (c) => c.toUpperCase())));
+    setUser({ email, displayName: displayName || 'User' });
   }, []);
 
-  if (loading) {
-    return (
-        <div className="flex flex-col h-screen">
-            <header className="sticky top-0 z-50 w-full border-b bg-card/80 backdrop-blur-sm">
-                <div className="container flex h-16 items-center">
-                    <Skeleton className="h-8 w-32" />
-                    <div className="flex items-center space-x-4 ml-6">
-                        <Skeleton className="h-6 w-20" />
-                        <Skeleton className="h-6 w-20" />
-                        <Skeleton className="h-6 w-20" />
-                    </div>
-                </div>
-            </header>
-            <main className="flex-1 flex items-center justify-center">
-                <Skeleton className="h-64 w-full max-w-md" />
-            </main>
-        </div>
-    );
-  }
+  const logout = useCallback(() => {
+    setUser(null);
+  }, []);
+
+  // In this mock setup, we are never in a loading state from an async source.
+  const loading = false;
 
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
