@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { VirtualTree } from "@/components/virtual-tree";
 import { AuthGuard } from "@/components/auth-guard";
+import { useAuth } from "@/context/auth-context";
 
 export default function Home() {
   const [duration, setDuration] = useState(25);
@@ -21,7 +22,6 @@ export default function Home() {
   const [isRunning, setIsRunning] = useState(false);
   const [isDeepFocus, setIsDeepFocus] = useState(false);
   
-  const [userCash, setUserCash] = useState(100);
   const [betAmount, setBetAmount] = useState(10);
   const [currentBet, setCurrentBet] = useState(0);
 
@@ -31,20 +31,27 @@ export default function Home() {
   const [sessionSuccess, setSessionSuccess] = useState(false);
   
   const { toast } = useToast();
+  const { user, updateUser } = useAuth();
 
   const handleSessionEnd = useCallback((success: boolean) => {
     setIsRunning(false);
     setSessionSuccess(success);
 
+    if (!user || !updateUser) return;
+
+    let newCash = user.cash;
+    let newTotalFocusTime = user.totalFocusTime;
+    const newForest = [...user.forest];
+
     if (currentBet > 0) {
       if (success) {
-        setUserCash(prev => prev + currentBet);
+        newCash += currentBet;
         setSummaryMessage({
           title: "Session Complete!",
           description: `You've grown a new tree and earned $${currentBet}. Great work!`,
         });
       } else {
-        setUserCash(prev => prev - currentBet);
+        newCash -= currentBet;
         setSummaryMessage({
           title: "Tree Withered",
           description: `You've lost your bet of $${currentBet}. Don't give up!`,
@@ -56,6 +63,26 @@ export default function Home() {
           description: success ? "You've successfully grown a new tree. Keep it up!" : "Your tree withered. Stay focused next time!",
         });
     }
+
+    if (success) {
+      newTotalFocusTime += duration / 60; // Add duration in hours
+      const treeTypes = ["Oak", "Pine", "Maple", "Cherry Blossom", "Willow", "Birch"];
+      const randomTree = treeTypes[Math.floor(Math.random() * treeTypes.length)];
+      newForest.push({
+        id: Date.now(),
+        date: new Date().toISOString().split('T')[0],
+        duration: duration,
+        treeType: randomTree,
+        hint: `${randomTree.toLowerCase()} tree`,
+      });
+    }
+
+    updateUser({
+      cash: newCash,
+      totalFocusTime: newTotalFocusTime,
+      forest: newForest,
+    });
+
     if (!success && isDeepFocus) {
         toast({
             variant: "destructive",
@@ -66,7 +93,7 @@ export default function Home() {
     setShowSummaryModal(true);
     setCurrentBet(0);
     setTimeLeft(duration * 60);
-  }, [currentBet, duration, toast, isDeepFocus]);
+  }, [currentBet, duration, toast, isDeepFocus, user, updateUser]);
 
   useEffect(() => {
     let timerId: NodeJS.Timeout;
@@ -116,7 +143,7 @@ export default function Home() {
   };
 
   const handleStartAttempt = () => {
-    if (userCash > 0) {
+    if (user && user.cash > 0) {
       setShowBetModal(true);
     } else {
       handleStart(0);
@@ -124,6 +151,11 @@ export default function Home() {
   };
 
   const handleStart = (bet: number) => {
+    if (!user) return;
+    if (bet > user.cash) {
+      toast({ variant: "destructive", title: "Not enough cash!", description: `You can't bet more than you have.` });
+      return;
+    }
     setCurrentBet(bet);
     setIsRunning(true);
     setShowBetModal(false);
@@ -202,7 +234,7 @@ export default function Home() {
               <div className="flex items-center justify-between p-3 rounded-lg border bg-secondary/50">
                   <div className="flex items-center space-x-2">
                       <Coins className="text-amber-500" />
-                      <Label>Your Cash: ${userCash}</Label>
+                      <Label>Your Cash: ${user?.cash || 0}</Label>
                   </div>
               </div>
             </div>
@@ -246,15 +278,15 @@ export default function Home() {
                       id="bet"
                       type="number"
                       value={betAmount}
-                      onChange={(e) => setBetAmount(Math.min(userCash, Math.max(0, parseInt(e.target.value) || 0)))}
-                      max={userCash}
+                      onChange={(e) => setBetAmount(Math.min(user?.cash || 0, Math.max(0, parseInt(e.target.value) || 0)))}
+                      max={user?.cash || 0}
                       min={0}
                   />
                </div>
                <Slider
                   value={[betAmount]}
                   onValueChange={(value) => setBetAmount(value[0])}
-                  max={userCash}
+                  max={user?.cash || 0}
                   step={1}
               />
             </div>

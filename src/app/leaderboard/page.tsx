@@ -3,25 +3,66 @@
 import { AuthGuard } from "@/components/auth-guard";
 import { LeaderboardTable } from "@/components/leaderboard-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/context/auth-context";
 import { Crown, Trophy } from "lucide-react";
 
-const focusChampionsData = [
-    { rank: 1, user: "Alex", value: "342 hours" },
-    { rank: 2, user: "Sam", value: "298 hours" },
-    { rank: 3, user: "Jordan", value: "251 hours" },
-    { rank: 4, user: "Casey", value: "249 hours" },
-    { rank: 5, user: "Morgan", value: "215 hours" },
+const baseFocusChampionsData = [
+    { user: "Alex", value: 342 },
+    { user: "Sam", value: 298 },
+    { user: "Jordan", value: 251 },
+    { user: "Casey", value: 249 },
+    { user: "Morgan", value: 215 },
 ];
 
-const bettingWinnersData = [
-    { rank: 1, user: "Jamie", value: "$10,540" },
-    { rank: 2, user: "Riley", value: "$9,800" },
-    { rank: 3, user: "Alex", value: "$8,750" },
-    { rank: 4, user: "Taylor", value: "$8,120" },
-    { rank: 5, user: "Pat", value: "$7,660" },
+const baseBettingWinnersData = [
+    { user: "Jamie", value: 10540 },
+    { user: "Riley", value: 9800 },
+    { user: "Alex", value: 8750 },
+    { user: "Taylor", value: 8120 },
+    { user: "Pat", value: 7660 },
 ];
 
 export default function LeaderboardPage() {
+    const { user } = useAuth();
+
+    const getLeaderboardData = (
+        baseData: { user: string; value: number }[], 
+        currentUserData: { user: string; value: number } | null, 
+        formatValue: (value: number) => string
+    ) => {
+        let combinedData = [...baseData];
+        if (currentUserData) {
+            const userIndex = combinedData.findIndex(u => u.user === currentUserData.user);
+            if (userIndex > -1) {
+                if (combinedData[userIndex].value < currentUserData.value) {
+                    combinedData[userIndex] = currentUserData;
+                }
+            } else {
+                combinedData.push(currentUserData);
+            }
+        }
+        
+        return combinedData
+            .sort((a, b) => b.value - a.value)
+            .map((item, index) => ({
+                rank: index + 1,
+                user: item.user,
+                value: formatValue(item.value),
+            }));
+    };
+
+    const focusChampionsData = getLeaderboardData(
+        baseFocusChampionsData,
+        user ? { user: user.displayName, value: user.totalFocusTime } : null,
+        (value) => `${value.toFixed(1)} hours`
+    );
+
+    const bettingWinnersData = getLeaderboardData(
+        baseBettingWinnersData,
+        user ? { user: user.displayName, value: user.cash } : null,
+        (value) => `$${value.toLocaleString()}`
+    );
+
     return (
         <AuthGuard>
             <div className="container py-8">
