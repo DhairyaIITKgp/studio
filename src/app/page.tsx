@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Image from "next/image";
 import { BrainCircuit, Coins, Play, Pause, X, Sparkles } from "lucide-react";
 import { RadialBarChart, RadialBar, PolarAngleAxis, ResponsiveContainer } from 'recharts';
 
@@ -138,7 +137,6 @@ export default function Home() {
     }
   };
 
-  const treeGrowth = isRunning ? 1 + (1 - timeLeft / (duration * 60)) * 0.5 : 1;
   const progress = isRunning ? ((duration * 60 - timeLeft) / (duration * 60)) * 100 : 0;
 
   return (
@@ -146,42 +144,29 @@ export default function Home() {
       <Card className="w-full max-w-md mx-auto shadow-2xl">
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-bold text-primary">Focus Session</CardTitle>
-          <CardDescription>Plant a tree and focus on your work.</CardDescription>
+          <CardDescription>Stay focused to complete the circle.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-8">
-          <div className="relative w-48 h-48 flex items-center justify-center">
+          <div className="relative w-64 h-64 flex items-center justify-center">
             <div className="absolute inset-0">
                 <ResponsiveContainer width="100%" height="100%">
                     <RadialBarChart
                         cx="50%"
                         cy="50%"
-                        innerRadius="85%"
+                        innerRadius="80%"
                         outerRadius="100%"
-                        barSize={12}
+                        barSize={15}
                         data={[{ name: 'progress', value: progress, fill: 'hsl(var(--primary))' }]}
                         startAngle={90}
                         endAngle={-270}
                     >
                         <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
-                        <RadialBar background={{ fill: 'hsl(var(--muted))' }} dataKey="value" cornerRadius={6} />
+                        <RadialBar background={{ fill: 'hsl(var(--muted))' }} dataKey="value" cornerRadius={7} />
                     </RadialBarChart>
                 </ResponsiveContainer>
             </div>
-            <div 
-                className="w-[82%] h-[82%] rounded-full overflow-hidden transition-transform duration-1000 ease-linear"
-                style={{ transform: `scale(${treeGrowth})` }}
-            >
-                <Image
-                  src="https://placehold.co/200x200.png"
-                  alt="Growing Tree"
-                  width={200}
-                  height={200}
-                  className="object-cover w-full h-full"
-                  data-ai-hint="sapling tree"
-                />
-            </div>
+            <h2 className="text-6xl font-bold font-mono text-center text-primary">{formatTime(timeLeft)}</h2>
           </div>
-          <h2 className="text-6xl font-bold font-mono text-center">{formatTime(timeLeft)}</h2>
           <div className="w-full space-y-6">
             <div className="space-y-2">
               <Label htmlFor="duration">Session Length: {duration} minutes</Label>
