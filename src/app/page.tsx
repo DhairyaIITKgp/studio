@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { BrainCircuit, Coins, Play, Pause, X, Sparkles } from "lucide-react";
+import { BrainCircuit, Coins, Play, Pause, X } from "lucide-react";
 import { RadialBarChart, RadialBar, PolarAngleAxis, ResponsiveContainer } from 'recharts';
 
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,6 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { FocusCoachSheet } from "@/components/focus-coach-sheet";
 
 export default function Home() {
   const [duration, setDuration] = useState(25);
@@ -197,7 +196,6 @@ export default function Home() {
                     <Coins className="text-amber-500" />
                     <Label>Your Cash: ${userCash}</Label>
                 </div>
-                <FocusCoachSheet />
             </div>
           </div>
         </CardContent>
