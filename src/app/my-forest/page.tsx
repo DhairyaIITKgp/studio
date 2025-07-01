@@ -25,7 +25,7 @@ export default function MyForestPage() {
           <Card key={tree.id} className="overflow-hidden hover:shadow-lg transition-shadow">
             <CardHeader className="p-0">
                <Image
-                  src={`https://placehold.co/400x300.png`}
+                  src={`https://placehold.co/400x300/0000/0000.png`}
                   alt={`A grown ${tree.treeType} tree`}
                   width={400}
                   height={300}
