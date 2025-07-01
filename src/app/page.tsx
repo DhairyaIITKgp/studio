@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { BrainCircuit, Coins, Play, Pause, X, Sparkles } from "lucide-react";
+import { RadialBarChart, RadialBar, PolarAngleAxis, ResponsiveContainer } from 'recharts';
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -82,13 +83,22 @@ export default function Home() {
         e.preventDefault();
         e.returnValue = ''; // This is required for compatibility.
       };
+      
+      const handleVisibilityChange = () => {
+        if (document.hidden) {
+          handleSessionEnd(false);
+        }
+      };
+
       window.addEventListener('beforeunload', handleBeforeUnload);
+      document.addEventListener('visibilitychange', handleVisibilityChange);
 
       return () => {
         window.removeEventListener('beforeunload', handleBeforeUnload);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
       };
     }
-  }, [isRunning, isDeepFocus]);
+  }, [isRunning, isDeepFocus, handleSessionEnd]);
   
   useEffect(() => {
     if (!isRunning) {
@@ -129,6 +139,7 @@ export default function Home() {
   };
 
   const treeGrowth = isRunning ? 1 + (1 - timeLeft / (duration * 60)) * 0.5 : 1;
+  const progress = isRunning ? ((duration * 60 - timeLeft) / (duration * 60)) * 100 : 0;
 
   return (
     <div className="flex-1 flex items-center justify-center p-4 bg-background">
@@ -138,16 +149,37 @@ export default function Home() {
           <CardDescription>Plant a tree and focus on your work.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-8">
-          <div className="relative w-48 h-48">
-            <Image
-              src="https://placehold.co/200x200.png"
-              alt="Growing Tree"
-              width={200}
-              height={200}
-              className="transition-transform duration-1000 ease-linear"
-              style={{ transform: `scale(${treeGrowth})` }}
-              data-ai-hint="sapling tree"
-            />
+          <div className="relative w-48 h-48 flex items-center justify-center">
+            <div className="absolute inset-0">
+                <ResponsiveContainer width="100%" height="100%">
+                    <RadialBarChart
+                        cx="50%"
+                        cy="50%"
+                        innerRadius="85%"
+                        outerRadius="100%"
+                        barSize={12}
+                        data={[{ name: 'progress', value: progress, fill: 'hsl(var(--primary))' }]}
+                        startAngle={90}
+                        endAngle={-270}
+                    >
+                        <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
+                        <RadialBar background={{ fill: 'hsl(var(--muted))' }} dataKey="value" cornerRadius={6} />
+                    </RadialBarChart>
+                </ResponsiveContainer>
+            </div>
+            <div 
+                className="w-[82%] h-[82%] rounded-full overflow-hidden transition-transform duration-1000 ease-linear"
+                style={{ transform: `scale(${treeGrowth})` }}
+            >
+                <Image
+                  src="https://placehold.co/200x200.png"
+                  alt="Growing Tree"
+                  width={200}
+                  height={200}
+                  className="object-cover w-full h-full"
+                  data-ai-hint="sapling tree"
+                />
+            </div>
           </div>
           <h2 className="text-6xl font-bold font-mono text-center">{formatTime(timeLeft)}</h2>
           <div className="w-full space-y-6">
