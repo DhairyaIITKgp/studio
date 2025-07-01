@@ -20,7 +20,7 @@ export default function Home() {
   const [isRunning, setIsRunning] = useState(false);
   const [isDeepFocus, setIsDeepFocus] = useState(false);
   
-  const [userPoints, setUserPoints] = useState(100);
+  const [userCash, setUserCash] = useState(100);
   const [betAmount, setBetAmount] = useState(10);
   const [currentBet, setCurrentBet] = useState(0);
 
@@ -34,16 +34,16 @@ export default function Home() {
     setIsRunning(false);
     if (currentBet > 0) {
       if (success) {
-        setUserPoints(prev => prev + currentBet);
+        setUserCash(prev => prev + currentBet);
         setSummaryMessage({
           title: "Session Complete!",
-          description: `You've earned ${currentBet} points. Great work!`,
+          description: `You've earned $${currentBet}. Great work!`,
         });
       } else {
-        setUserPoints(prev => prev - currentBet);
+        setUserCash(prev => prev - currentBet);
         setSummaryMessage({
           title: "Session Incomplete",
-          description: `You've lost your bet of ${currentBet} points. Don't give up!`,
+          description: `You've lost your bet of $${currentBet}. Don't give up!`,
         });
       }
     } else {
@@ -78,15 +78,17 @@ export default function Home() {
   
   useEffect(() => {
     if (isRunning && isDeepFocus) {
-      const handleVisibilityChange = () => {
-        if (document.visibilityState === 'hidden') {
-          handleSessionEnd(false);
-        }
+      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+        e.preventDefault();
+        e.returnValue = ''; // This is required for compatibility.
       };
-      document.addEventListener('visibilitychange', handleVisibilityChange);
-      return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.addEventListener('beforeunload', handleBeforeUnload);
+
+      return () => {
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+      };
     }
-  }, [isRunning, isDeepFocus, handleSessionEnd]);
+  }, [isRunning, isDeepFocus]);
   
   useEffect(() => {
     if (!isRunning) {
@@ -101,7 +103,7 @@ export default function Home() {
   };
 
   const handleStartAttempt = () => {
-    if (userPoints > 0) {
+    if (userCash > 0) {
       setShowBetModal(true);
     } else {
       handleStart(0);
@@ -176,7 +178,7 @@ export default function Home() {
             <div className="flex items-center justify-between p-3 rounded-lg border bg-secondary/50">
                 <div className="flex items-center space-x-2">
                     <Coins className="text-amber-500" />
-                    <Label>Your Points: {userPoints}</Label>
+                    <Label>Your Cash: ${userCash}</Label>
                 </div>
                 <FocusCoachSheet />
             </div>
@@ -211,7 +213,7 @@ export default function Home() {
           <DialogHeader>
             <DialogTitle className="text-accent">Place Your Bet!</DialogTitle>
             <DialogDescription>
-              Bet your focus points on completing this session. Win and you double your bet!
+              Bet your virtual cash on completing this session. Win and you double your bet!
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -221,22 +223,22 @@ export default function Home() {
                     id="bet"
                     type="number"
                     value={betAmount}
-                    onChange={(e) => setBetAmount(Math.min(userPoints, Math.max(0, parseInt(e.target.value) || 0)))}
-                    max={userPoints}
+                    onChange={(e) => setBetAmount(Math.min(userCash, Math.max(0, parseInt(e.target.value) || 0)))}
+                    max={userCash}
                     min={0}
                 />
              </div>
              <Slider
                 value={[betAmount]}
                 onValueChange={(value) => setBetAmount(value[0])}
-                max={userPoints}
+                max={userCash}
                 step={1}
             />
           </div>
           <DialogFooter className="sm:justify-between">
              <Button variant="ghost" onClick={() => handleStart(0)}>No, thanks</Button>
             <Button style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }} onClick={() => handleStart(betAmount)}>
-                <Coins className="mr-2 h-4 w-4" /> Bet {betAmount} Points
+                <Coins className="mr-2 h-4 w-4" /> Bet ${betAmount}
             </Button>
           </DialogFooter>
         </DialogContent>

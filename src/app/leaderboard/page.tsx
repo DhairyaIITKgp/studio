@@ -11,11 +11,11 @@ const focusChampionsData = [
 ];
 
 const bettingWinnersData = [
-    { rank: 1, user: "Jamie", value: "10,540 pts" },
-    { rank: 2, user: "Riley", value: "9,800 pts" },
-    { rank: 3, user: "Alex", value: "8,750 pts" },
-    { rank: 4, user: "Taylor", value: "8,120 pts" },
-    { rank: 5, user: "Pat", value: "7,660 pts" },
+    { rank: 1, user: "Jamie", value: "$10,540" },
+    { rank: 2, user: "Riley", value: "$9,800" },
+    { rank: 3, user: "Alex", value: "$8,750" },
+    { rank: 4, user: "Taylor", value: "$8,120" },
+    { rank: 5, user: "Pat", value: "$7,660" },
 ];
 
 export default function LeaderboardPage() {
@@ -46,7 +46,7 @@ export default function LeaderboardPage() {
                     </CardHeader>
                     <CardContent>
                         <LeaderboardTable
-                            headers={["Rank", "User", "Points Won"]}
+                            headers={["Rank", "User", "Cash Won"]}
                             data={bettingWinnersData}
                         />
                     </CardContent>
