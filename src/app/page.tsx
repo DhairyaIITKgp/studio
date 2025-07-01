@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { VirtualTree } from "@/components/virtual-tree";
 
 export default function Home() {
   const [duration, setDuration] = useState(25);
@@ -26,29 +27,32 @@ export default function Home() {
   const [showBetModal, setShowBetModal] = useState(false);
   const [showSummaryModal, setShowSummaryModal] = useState(false);
   const [summaryMessage, setSummaryMessage] = useState({ title: "", description: "" });
+  const [sessionSuccess, setSessionSuccess] = useState(false);
   
   const { toast } = useToast();
 
   const handleSessionEnd = useCallback((success: boolean) => {
     setIsRunning(false);
+    setSessionSuccess(success);
+
     if (currentBet > 0) {
       if (success) {
         setUserCash(prev => prev + currentBet);
         setSummaryMessage({
           title: "Session Complete!",
-          description: `You've earned $${currentBet}. Great work!`,
+          description: `You've grown a new tree and earned $${currentBet}. Great work!`,
         });
       } else {
         setUserCash(prev => prev - currentBet);
         setSummaryMessage({
-          title: "Session Incomplete",
+          title: "Tree Withered",
           description: `You've lost your bet of $${currentBet}. Don't give up!`,
         });
       }
     } else {
        setSummaryMessage({
-          title: "Session Complete!",
-          description: "You've completed a focus session. Keep it up!",
+          title: success ? "Session Complete!" : "Session Incomplete",
+          description: success ? "You've successfully grown a new tree. Keep it up!" : "Your tree withered. Stay focused next time!",
         });
     }
     if (!success && isDeepFocus) {
@@ -129,21 +133,18 @@ export default function Home() {
   
   const handleCancel = () => {
     setIsRunning(false);
-    if (currentBet > 0) {
-        handleSessionEnd(false);
-    } else {
-        setTimeLeft(duration * 60);
-    }
+    handleSessionEnd(false);
   };
 
   const progress = isRunning ? ((duration * 60 - timeLeft) / (duration * 60)) * 100 : 0;
+  const treeProgress = isRunning || timeLeft < duration * 60 ? progress : -1; // -1 to show seed before start
 
   return (
     <div className="flex-1 flex items-center justify-center p-4 bg-background">
       <Card className="w-full max-w-md mx-auto shadow-2xl">
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-bold text-primary">Focus Session</CardTitle>
-          <CardDescription>Stay focused to complete the circle.</CardDescription>
+          <CardDescription>Stay focused to grow your tree.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-8">
           <div className="relative w-64 h-64 flex items-center justify-center">
@@ -164,7 +165,10 @@ export default function Home() {
                     </RadialBarChart>
                 </ResponsiveContainer>
             </div>
-            <h2 className="text-6xl font-bold font-mono text-center text-primary">{formatTime(timeLeft)}</h2>
+            <div className="absolute flex flex-col items-center justify-center text-center">
+                <VirtualTree progress={treeProgress} />
+                <h2 className="text-5xl font-bold font-mono text-primary mt-2 bg-background/80 backdrop-blur-sm px-2 rounded-lg">{formatTime(timeLeft)}</h2>
+            </div>
           </div>
           <div className="w-full space-y-6">
             <div className="space-y-2">
@@ -260,11 +264,12 @@ export default function Home() {
       </Dialog>
       
       <Dialog open={showSummaryModal} onOpenChange={setShowSummaryModal}>
-          <DialogContent>
+          <DialogContent className="flex flex-col items-center text-center">
               <DialogHeader>
                   <DialogTitle>{summaryMessage.title}</DialogTitle>
                   <DialogDescription>{summaryMessage.description}</DialogDescription>
               </DialogHeader>
+              <VirtualTree progress={sessionSuccess ? 100 : 0} isWithered={!sessionSuccess} size={150} />
               <DialogFooter>
                   <Button onClick={() => setShowSummaryModal(false)}>Close</Button>
               </DialogFooter>

@@ -10,6 +10,7 @@ export function Header() {
 
   const navLinks = [
     { href: "/", label: "Focus" },
+    { href: "/my-forest", label: "My Forest" },
     { href: "/leaderboard", label: "Leaderboard" },
   ];
 
