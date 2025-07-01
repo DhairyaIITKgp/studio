@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { VirtualTree } from "@/components/virtual-tree";
+import { AuthGuard } from "@/components/auth-guard";
 
 export default function Home() {
   const [duration, setDuration] = useState(25);
@@ -140,144 +141,146 @@ export default function Home() {
   const treeProgress = isRunning || timeLeft < duration * 60 ? progress : -1; // -1 to show seed before start
 
   return (
-    <div className="flex-1 flex items-center justify-center p-4 bg-background">
-      <Card className="w-full max-w-md mx-auto shadow-2xl">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold text-primary">Focus Session</CardTitle>
-          <CardDescription>Stay focused to grow your tree.</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center gap-8">
-          <div className="relative w-64 h-64 flex items-center justify-center">
-            <div className="absolute inset-0">
-                <ResponsiveContainer width="100%" height="100%">
-                    <RadialBarChart
-                        cx="50%"
-                        cy="50%"
-                        innerRadius="80%"
-                        outerRadius="100%"
-                        barSize={15}
-                        data={[{ name: 'progress', value: progress, fill: 'hsl(var(--primary))' }]}
-                        startAngle={90}
-                        endAngle={-270}
-                    >
-                        <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
-                        <RadialBar background={{ fill: 'hsl(var(--muted))' }} dataKey="value" cornerRadius={7} />
-                    </RadialBarChart>
-                </ResponsiveContainer>
-            </div>
-            <div className="absolute inset-0 flex items-center justify-center">
-                 <VirtualTree progress={treeProgress} />
-            </div>
-            <h2 className="absolute bottom-5 text-5xl font-bold font-mono text-primary bg-background/80 backdrop-blur-sm px-4 py-1 rounded-lg">
-                {formatTime(timeLeft)}
-            </h2>
-          </div>
-          <div className="w-full space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="duration">Session Length: {duration} minutes</Label>
-              <Slider
-                id="duration"
-                min={5}
-                max={120}
-                step={5}
-                value={[duration]}
-                onValueChange={(value) => setDuration(value[0])}
-                disabled={isRunning}
-              />
-            </div>
-            <div className="flex items-center justify-between p-3 rounded-lg border">
-              <div className="flex items-center space-x-2">
-                <BrainCircuit className="text-primary" />
-                <Label htmlFor="deep-focus">Deep Focus Mode</Label>
+    <AuthGuard>
+      <div className="flex-1 flex items-center justify-center p-4 bg-background">
+        <Card className="w-full max-w-md mx-auto shadow-2xl">
+          <CardHeader className="text-center">
+            <CardTitle className="text-3xl font-bold text-primary">Focus Session</CardTitle>
+            <CardDescription>Stay focused to grow your tree.</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center gap-8">
+            <div className="relative w-64 h-64 flex items-center justify-center">
+              <div className="absolute inset-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                      <RadialBarChart
+                          cx="50%"
+                          cy="50%"
+                          innerRadius="80%"
+                          outerRadius="100%"
+                          barSize={15}
+                          data={[{ name: 'progress', value: progress, fill: 'hsl(var(--primary))' }]}
+                          startAngle={90}
+                          endAngle={-270}
+                      >
+                          <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
+                          <RadialBar background={{ fill: 'hsl(var(--muted))' }} dataKey="value" cornerRadius={7} />
+                      </RadialBarChart>
+                  </ResponsiveContainer>
               </div>
-              <Switch
-                id="deep-focus"
-                checked={isDeepFocus}
-                onCheckedChange={setIsDeepFocus}
-                disabled={isRunning}
+              <div className="absolute inset-0 flex items-center justify-center">
+                   <VirtualTree progress={treeProgress} />
+              </div>
+              <h2 className="absolute bottom-5 text-5xl font-bold font-mono text-primary bg-background/80 backdrop-blur-sm px-4 py-1 rounded-lg">
+                  {formatTime(timeLeft)}
+              </h2>
+            </div>
+            <div className="w-full space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="duration">Session Length: {duration} minutes</Label>
+                <Slider
+                  id="duration"
+                  min={5}
+                  max={120}
+                  step={5}
+                  value={[duration]}
+                  onValueChange={(value) => setDuration(value[0])}
+                  disabled={isRunning}
+                />
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-lg border">
+                <div className="flex items-center space-x-2">
+                  <BrainCircuit className="text-primary" />
+                  <Label htmlFor="deep-focus">Deep Focus Mode</Label>
+                </div>
+                <Switch
+                  id="deep-focus"
+                  checked={isDeepFocus}
+                  onCheckedChange={setIsDeepFocus}
+                  disabled={isRunning}
+                />
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-lg border bg-secondary/50">
+                  <div className="flex items-center space-x-2">
+                      <Coins className="text-amber-500" />
+                      <Label>Your Cash: ${userCash}</Label>
+                  </div>
+              </div>
+            </div>
+          </CardContent>
+          <CardFooter className="flex justify-center space-x-4">
+            {!isRunning && timeLeft === duration * 60 ? (
+              <Button size="lg" onClick={handleStartAttempt} className="w-32 bg-primary hover:bg-primary/90">
+                <Play className="mr-2 h-5 w-5" /> Start
+              </Button>
+            ) : null}
+            {isRunning ? (
+              <>
+                <Button size="lg" variant="outline" onClick={handlePause} className="w-32">
+                  <Pause className="mr-2 h-5 w-5" /> Pause
+                </Button>
+                <Button size="lg" variant="destructive" onClick={handleCancel} className="w-32">
+                  <X className="mr-2 h-5 w-5" /> Cancel
+                </Button>
+              </>
+            ) : null}
+            {!isRunning && timeLeft < duration * 60 ? (
+               <Button size="lg" onClick={handleResume} className="w-32 bg-primary hover:bg-primary/90">
+                <Play className="mr-2 h-5 w-5" /> Resume
+              </Button>
+            ) : null}
+          </CardFooter>
+        </Card>
+        
+        <Dialog open={showBetModal} onOpenChange={setShowBetModal}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="text-accent">Place Your Bet!</DialogTitle>
+              <DialogDescription>
+                Bet your virtual cash on completing this session. Win and you double your bet!
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+               <div className="flex items-center space-x-2">
+                  <Label htmlFor="bet" className="whitespace-nowrap">Bet Amount:</Label>
+                  <Input
+                      id="bet"
+                      type="number"
+                      value={betAmount}
+                      onChange={(e) => setBetAmount(Math.min(userCash, Math.max(0, parseInt(e.target.value) || 0)))}
+                      max={userCash}
+                      min={0}
+                  />
+               </div>
+               <Slider
+                  value={[betAmount]}
+                  onValueChange={(value) => setBetAmount(value[0])}
+                  max={userCash}
+                  step={1}
               />
             </div>
-            <div className="flex items-center justify-between p-3 rounded-lg border bg-secondary/50">
-                <div className="flex items-center space-x-2">
-                    <Coins className="text-amber-500" />
-                    <Label>Your Cash: ${userCash}</Label>
-                </div>
-            </div>
-          </div>
-        </CardContent>
-        <CardFooter className="flex justify-center space-x-4">
-          {!isRunning && timeLeft === duration * 60 ? (
-            <Button size="lg" onClick={handleStartAttempt} className="w-32 bg-primary hover:bg-primary/90">
-              <Play className="mr-2 h-5 w-5" /> Start
-            </Button>
-          ) : null}
-          {isRunning ? (
-            <>
-              <Button size="lg" variant="outline" onClick={handlePause} className="w-32">
-                <Pause className="mr-2 h-5 w-5" /> Pause
+            <DialogFooter className="sm:justify-between">
+               <Button variant="ghost" onClick={() => handleStart(0)}>No, thanks</Button>
+              <Button style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }} onClick={() => handleStart(betAmount)}>
+                  <Coins className="mr-2 h-4 w-4" /> Bet ${betAmount}
               </Button>
-              <Button size="lg" variant="destructive" onClick={handleCancel} className="w-32">
-                <X className="mr-2 h-5 w-5" /> Cancel
-              </Button>
-            </>
-          ) : null}
-          {!isRunning && timeLeft < duration * 60 ? (
-             <Button size="lg" onClick={handleResume} className="w-32 bg-primary hover:bg-primary/90">
-              <Play className="mr-2 h-5 w-5" /> Resume
-            </Button>
-          ) : null}
-        </CardFooter>
-      </Card>
-      
-      <Dialog open={showBetModal} onOpenChange={setShowBetModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-accent">Place Your Bet!</DialogTitle>
-            <DialogDescription>
-              Bet your virtual cash on completing this session. Win and you double your bet!
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-             <div className="flex items-center space-x-2">
-                <Label htmlFor="bet" className="whitespace-nowrap">Bet Amount:</Label>
-                <Input
-                    id="bet"
-                    type="number"
-                    value={betAmount}
-                    onChange={(e) => setBetAmount(Math.min(userCash, Math.max(0, parseInt(e.target.value) || 0)))}
-                    max={userCash}
-                    min={0}
-                />
-             </div>
-             <Slider
-                value={[betAmount]}
-                onValueChange={(value) => setBetAmount(value[0])}
-                max={userCash}
-                step={1}
-            />
-          </div>
-          <DialogFooter className="sm:justify-between">
-             <Button variant="ghost" onClick={() => handleStart(0)}>No, thanks</Button>
-            <Button style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }} onClick={() => handleStart(betAmount)}>
-                <Coins className="mr-2 h-4 w-4" /> Bet ${betAmount}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      <Dialog open={showSummaryModal} onOpenChange={setShowSummaryModal}>
-          <DialogContent className="flex flex-col items-center text-center">
-              <DialogHeader>
-                  <DialogTitle>{summaryMessage.title}</DialogTitle>
-                  <DialogDescription>{summaryMessage.description}</DialogDescription>
-              </DialogHeader>
-              <VirtualTree progress={sessionSuccess ? 100 : 0} isWithered={!sessionSuccess} size={150} />
-              <DialogFooter>
-                  <Button onClick={() => setShowSummaryModal(false)}>Close</Button>
-              </DialogFooter>
+            </DialogFooter>
           </DialogContent>
-      </Dialog>
+        </Dialog>
+        
+        <Dialog open={showSummaryModal} onOpenChange={setShowSummaryModal}>
+            <DialogContent className="flex flex-col items-center text-center">
+                <DialogHeader>
+                    <DialogTitle>{summaryMessage.title}</DialogTitle>
+                    <DialogDescription>{summaryMessage.description}</DialogDescription>
+                </DialogHeader>
+                <VirtualTree progress={sessionSuccess ? 100 : 0} isWithered={!sessionSuccess} size={150} />
+                <DialogFooter>
+                    <Button onClick={() => setShowSummaryModal(false)}>Close</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
 
-    </div>
+      </div>
+    </AuthGuard>
   );
 }
